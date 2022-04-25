@@ -24,7 +24,7 @@ import pandas as pd
 
 metadata_table = pd.read_csv(METADATA_TABLE_FILE, sep='\t')
 
-# # # Focus on a few TFs and cell types
+## Focus on a few TFs and cell types
 # SELECTED_TFS = ['CTCF', 'GABPA']
 # SELECTED_CELLTYPES = ['K562', 'A549']
 # metadata_table = metadata_table[(metadata_table['tf_name'].isin(SELECTED_TFS)) & (metadata_table['cell_type'].isin(SELECTED_CELLTYPES))]

@@ -29,13 +29,13 @@ import pandas as pd
 
 metadata_table = pd.read_csv(METADATA_TABLE_FILE, sep='\t')
 
-Focus on a few TFs and cell types
-SELECTED_TFS = ['GABPA', 'NFIC', 'FOXA1', 'CTCF']
-SELECTED_CELLTYPES = ['K562', 'GM12878']
+# Focus on a few TFs and cell types
+# SELECTED_TFS = ['GABPA', 'NFIC', 'FOXA1', 'CTCF']
+# SELECTED_CELLTYPES = ['K562', 'GM12878']
 # EXCLUDED_TFS = ['IRF1']
 # metadata_table = metadata_table[~metadata_table['tf_name'].isin(EXCLUDED_TFS)]
-#metadata_table = metadata_table[(metadata_table['cell_type'].isin(SELECTED_CELLTYPES))]
-metadata_table = metadata_table[(metadata_table['tf_name'].isin(SELECTED_TFS)) & (metadata_table['cell_type'].isin(SELECTED_CELLTYPES))]
+# metadata_table = metadata_table[(metadata_table['cell_type'].isin(SELECTED_CELLTYPES))]
+# metadata_table = metadata_table[(metadata_table['tf_name'].isin(SELECTED_TFS)) & (metadata_table['cell_type'].isin(SELECTED_CELLTYPES))]
 
 ALL_TRAINING_TFS = metadata_table['tf_name'].tolist()
 ALL_TRAINING_PWMIDS = metadata_table['pwm_id'].tolist()
