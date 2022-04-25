@@ -1,5 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 4 of /Users/kaixuanluo/Dropbox/projects_dropbox/TOP/TOP_workflow/snakemake/Snakefile:
-Missing input files for rule fimo:
-/datacommons/harteminklab/kl124/TOP/data/UCSC/hg38/hg38.fa
-/datacommons/harteminklab/kl124/TOP/data/motifs/pfms_meme/MA0139.1.meme
