@@ -1,0 +1,22 @@
+
+# Directories -----------------------------------------------------------------
+motif_dir: '/hpc/home/kl124/home/projects/ENCODE/FIMO/pwm/Jasparfix_memeCore/jasparfix_memedb/pwm'
+metadata_dir: '/datacommons/harteminklab/kl124/TOP/data/ENCODE/metadata/processed_JASPARver1'
+encode_data_dir: '/hpc/home/kl124/work/data/ENCODE'
+atac_data_dir: '/hpc/home/kl124/work/data/ENCODE/ATAC-seq'
+chip_data_dir: '/hpc/home/kl124/work/data/ENCODE/ChIP-seq'
+ref_genome_dir: '/datacommons/harteminklab/kl124/TOP/data/ref_genome/ENCODE'
+blacklist_dir: '/datacommons/harteminklab/kl124/TOP/data/blacklist'
+out_dir: '/hpc/home/kl124/work/TOP/processed_data_202112'
+log_dir: '/hpc/home/kl124/work/TOP/log/JASPARver1_202112'
+
+# Global settings -------------------------------------------------------------
+data_type: 'ATAC'
+thresh_pvalue: '1e-5'
+thresh_pwmscore: '0'
+ver_genome: 'hg38'
+bin: 'M5'
+motif_set: 'JASPARver1'
+chip_ref_size: '2e7'
+atac_ref_size: '5e7'
+training_metadata_file: '/datacommons/harteminklab/kl124/TOP/data/ENCODE/metadata/processed_JASPARver1/hg38/ATAC_ChIP_JASPARver1_training_data_table.tsv'

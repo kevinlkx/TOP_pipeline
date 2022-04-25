@@ -1,0 +1,135 @@
+
+# CONFIGURATION ---------------------------------------------------------------
+configfile: '../config/config_predict_ATAC_JASPAR2022.yaml'
+
+MOTIF_DIR = config['motif_dir']
+BLACKLIST_DIR = config['blacklist_dir']
+REF_GENOME_DIR = config['ref_genome_dir']
+ATAC_DATA_DIR = config['atac_data_dir']
+OUT_DIR = config['out_dir']
+LOG_DIR = config['log_dir']
+
+# Global settings -------------------------------------------------------------
+DATA_TYPE = config['data_type']
+THRESH_PVALUE = config['thresh_pvalue']
+THRESH_PWMSCORE = config['thresh_pwmscore']
+VER_GENOME = config['ver_genome']
+BIN = config['bin']
+MOTIF_SET = config['motif_set']
+ATAC_REF_SIZE = config['atac_ref_size']
+METADATA_TABLE_FILE = config['predict_metadata_file']
+
+# Load data from metadata table --------------------------------------
+import pandas as pd
+
+metadata_table = pd.read_csv(METADATA_TABLE_FILE, sep='\t')
+
+# # # Focus on a few TFs and cell types
+# SELECTED_TFS = ['CTCF', 'GABPA']
+# SELECTED_CELLTYPES = ['K562', 'A549']
+# metadata_table = metadata_table[(metadata_table['tf_name'].isin(SELECTED_TFS)) & (metadata_table['cell_type'].isin(SELECTED_CELLTYPES))]
+# EXCLUDED_MOTIFS = ['MA1125.1', 'MA1596.1', 'MA1587.1']
+EXCLUDED_MOTIFS = ['MA1125.1']
+metadata_table = metadata_table[~metadata_table["pwm_id"].isin(EXCLUDED_MOTIFS)]
+print('Excluded motifs:', EXCLUDED_MOTIFS)
+
+ALL_TFS = metadata_table['tf_name'].tolist()
+ALL_PWM_IDS = metadata_table['pwm_id'].tolist()
+ALL_CELLTYPES = metadata_table['cell_type'].tolist()
+
+# If ATAC-seq data have replicates, split the ATAC-seq samples
+max_n_reps = max(metadata_table['atac_file'].str.count(';') + 1)
+if max_n_reps == 1:
+    ALL_ATAC_SAMPLES = metadata_table['atac_file'].tolist()
+else:
+    ALL_ATAC_SAMPLES = ';'.join(metadata_table['atac_file'].tolist()).split(';')
+
+# List data sets
+TF_SET = set(ALL_TFS)
+PWMID_SET = set(ALL_PWM_IDS)
+CELLTYPE_SET = set(ALL_CELLTYPES)
+ATAC_SET = set(ALL_ATAC_SAMPLES)
+
+print('Number of TFs in the list :', len(TF_SET))
+print('Number of motifs in the list :', len(PWMID_SET))
+print('Number of cell types in the list :', len(CELLTYPE_SET))
+print('Number of ATAC samples in the list :', len(ATAC_SET))
+
+# Individual file patterns ---------------------------------------------------
+
+REF_GENOME_FILE = f'{REF_GENOME_DIR}/{VER_GENOME}/{VER_GENOME}.fasta'
+BLACKLIST_FILE = f'{BLACKLIST_DIR}/{VER_GENOME}_blacklist.bed.gz'
+CHROM_SIZE_FILE = f'{REF_GENOME_DIR}/{VER_GENOME}/{VER_GENOME}.chrom.sizes'
+
+## sites files
+# PWM_FILE = f'{MOTIF_DIR}/{{pwm_id}}.meme_pwm.txt' # motif set ver1 (jasparfix_memedb)
+PWM_FILE = f'{MOTIF_DIR}/{{pwm_id}}.meme' # motif set ver1 (jasparfix_memedb)
+FIMO_DIR = f'{OUT_DIR}/fimo_motif_matches/{VER_GENOME}/{MOTIF_SET}'
+FIMO_FILE = f'{FIMO_DIR}/{{pwm_id}}_{THRESH_PVALUE}.fimo.txt'
+SITES_DIR = f'{OUT_DIR}/candidate_sites/{VER_GENOME}/{MOTIF_SET}'
+SITES_FILE = f'{SITES_DIR}/{{pwm_id}}_{THRESH_PVALUE}.candidate_sites.txt.gz'
+
+## ATAC files
+ATAC_BAM_DIR = f'{ATAC_DATA_DIR}/{VER_GENOME}'
+ATAC_BAM_FILE = f'{ATAC_BAM_DIR}/{{atac_sample}}.bam'
+ATAC_BAI_FILE = f'{ATAC_BAM_FILE}.bai'
+ATAC_IDXSTATS_FILE = f'{ATAC_BAM_FILE}.idxstats.txt'
+
+ATAC_GENOMECOUNTS_DIR = f'{OUT_DIR}/atac_genome_counts/{VER_GENOME}'
+ATAC_GENOMECOUNTS_FWD_FILE = f'{ATAC_GENOMECOUNTS_DIR}/{{atac_sample}}.fwd.genomecounts.bw'
+ATAC_GENOMECOUNTS_REV_FILE = f'{ATAC_GENOMECOUNTS_DIR}/{{atac_sample}}.rev.genomecounts.bw'
+
+ATAC_SITES_COUNTS_DIR = F'{OUT_DIR}/atac_sites_counts/{VER_GENOME}/{MOTIF_SET}'
+ATAC_COUNTMATRIX_FILE = f'{ATAC_SITES_COUNTS_DIR}/{{atac_sample}}/{{pwm_id}}_{THRESH_PVALUE}.countmatrix.rds'
+ATAC_BINS_FILE = f'{ATAC_SITES_COUNTS_DIR}/{{atac_sample}}/{{pwm_id}}_{THRESH_PVALUE}.{BIN}_bins.rds'
+
+# File lists ------------------------------------------------------------------
+
+## All sites
+ALL_PWM_FILES = expand(PWM_FILE, pwm_id = PWMID_SET)
+ALL_FIMO_FILES = expand(FIMO_FILE, pwm_id = PWMID_SET)
+ALL_SITES_FILES = expand(SITES_FILE, pwm_id = PWMID_SET)
+
+## All ATAC files
+ALL_ATAC_BAM_FILES = expand(ATAC_BAM_FILE, atac_sample = ATAC_SET)
+ALL_ATAC_BAI_FILES = expand(ATAC_BAI_FILE, atac_sample = ATAC_SET)
+ALL_ATAC_IDXSTATS_FILES = expand(ATAC_IDXSTATS_FILE, atac_sample = ATAC_SET)
+
+ALL_ATAC_GENOMECOUNTS_FWD_FILES = expand(ATAC_GENOMECOUNTS_FWD_FILE, atac_sample = ATAC_SET)
+ALL_ATAC_GENOMECOUNTS_REV_FILES = expand(ATAC_GENOMECOUNTS_REV_FILE, atac_sample = ATAC_SET)
+
+ALL_ATAC_COUNTMATRIX_FILES = expand(ATAC_COUNTMATRIX_FILE,
+                                    atac_sample = ATAC_SET, pwm_id = PWMID_SET)
+ALL_ATAC_BINS_FILES = expand(ATAC_BINS_FILE,
+                             atac_sample = ATAC_SET, pwm_id = PWMID_SET)
+
+# Rules -----------------------------------------------------------------------
+
+include: 'rules/reads.smk'
+include: 'rules/sites.smk'
+include: 'rules/atac.smk'
+
+rule all:
+    input:
+        ALL_ATAC_BINS_FILES
+
+
+rule list_data:
+    shell:
+        '''
+        echo 'TFs: {TF_SET}'
+        echo 'Cell types: {CELLTYPE_SET}'
+        echo 'ATAC samples: {ATAC_SET}'
+        '''
+
+rule list_env:
+    conda:
+        'envs/top.yaml'
+    shell:
+        '''
+        samtools --version
+        bedtools --version
+        python --version
+        python -c 'import pandas as pd; print('pandas version: ' + pd.__version__)'
+        R --version
+        '''

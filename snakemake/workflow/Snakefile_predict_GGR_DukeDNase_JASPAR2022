@@ -1,0 +1,134 @@
+
+# CONFIGURATION ---------------------------------------------------------------
+configfile: '../config/config_predict_GGR_DukeDNase_JASPAR2022.yaml'
+
+MOTIF_DIR = config['motif_dir']
+BLACKLIST_DIR = config['blacklist_dir']
+REF_GENOME_DIR = config['ref_genome_dir']
+DNASE_DATA_DIR = config['dnase_data_dir']
+OUT_DIR = config['out_dir']
+LOG_DIR = config['log_dir']
+
+# Global settings -------------------------------------------------------------
+DATA_TYPE = config['data_type']
+THRESH_PVALUE = config['thresh_pvalue']
+THRESH_PWMSCORE = config['thresh_pwmscore']
+VER_GENOME = config['ver_genome']
+BIN = config['bin']
+MOTIF_SET = config['motif_set']
+DNASE_REF_SIZE = config['dnase_ref_size']
+METADATA_TABLE_FILE = config['predict_metadata_file']
+
+# Load data from metadata table --------------------------------------
+import pandas as pd
+
+metadata_table = pd.read_csv(METADATA_TABLE_FILE, sep='\t')
+
+# # # Focus on a few TFs and cell types
+# SELECTED_TFS = ['FOXF2', 'BACH1']
+# SELECTED_CELLTYPES = ['K562', 'A549']
+# metadata_table = metadata_table[(metadata_table['tf_name'].isin(SELECTED_TFS)) & (metadata_table['cell_type'].isin(SELECTED_CELLTYPES))]
+EXCLUDED_MOTIFS = ['MA1125.1', 'MA1596.1', 'MA1587.1']
+metadata_table = metadata_table[~metadata_table["pwm_id"].isin(EXCLUDED_MOTIFS)]
+print('Excluded motifs:', EXCLUDED_MOTIFS)
+
+ALL_TFS = metadata_table['tf_name'].tolist()
+ALL_PWM_IDS = metadata_table['pwm_id'].tolist()
+ALL_CELLTYPES = metadata_table['cell_type'].tolist()
+
+# If DNase-seq data have replicates, split the DNase-seq samples
+max_n_reps = max(metadata_table['dnase_file'].str.count(';') + 1)
+if max_n_reps == 1:
+    ALL_DNASE_SAMPLES = metadata_table['dnase_file'].tolist()
+else:
+    ALL_DNASE_SAMPLES = ';'.join(metadata_table['dnase_file'].tolist()).split(';')
+
+# List data sets
+TF_SET = set(ALL_TFS)
+PWMID_SET = set(ALL_PWM_IDS)
+CELLTYPE_SET = set(ALL_CELLTYPES)
+DNASE_SET = set(ALL_DNASE_SAMPLES)
+
+print('Number of TFs in the list :', len(TF_SET))
+print('Number of motifs in the list :', len(PWMID_SET))
+print('Number of cell types in the list :', len(CELLTYPE_SET))
+print('Number of DNase samples in the list :', len(DNASE_SET))
+
+# Individual file patterns ---------------------------------------------------
+
+REF_GENOME_FILE = f'{REF_GENOME_DIR}/{VER_GENOME}/{VER_GENOME}.fasta'
+BLACKLIST_FILE = f'{BLACKLIST_DIR}/{VER_GENOME}_blacklist.bed.gz'
+CHROM_SIZE_FILE = f'{REF_GENOME_DIR}/{VER_GENOME}/{VER_GENOME}.chrom.sizes'
+
+## sites files
+# PWM_FILE = f'{MOTIF_DIR}/{{pwm_id}}.meme_pwm.txt' # motif set ver1 (jasparfix_memedb)
+PWM_FILE = f'{MOTIF_DIR}/{{pwm_id}}.meme' # motif set ver1 (jasparfix_memedb)
+FIMO_DIR = f'{OUT_DIR}/fimo_motif_matches/{VER_GENOME}/{MOTIF_SET}'
+FIMO_FILE = f'{FIMO_DIR}/{{pwm_id}}_{THRESH_PVALUE}.fimo.txt'
+SITES_DIR = f'{OUT_DIR}/candidate_sites/{VER_GENOME}/{MOTIF_SET}'
+SITES_FILE = f'{SITES_DIR}/{{pwm_id}}_{THRESH_PVALUE}.candidate_sites.txt'
+
+## DNASE files
+DNASE_BAM_DIR = f'{DNASE_DATA_DIR}/{VER_GENOME}'
+DNASE_BAM_FILE = f'{DNASE_BAM_DIR}/{{dnase_sample}}.bam'
+DNASE_BAI_FILE = f'{DNASE_BAM_FILE}.bai'
+DNASE_IDXSTATS_FILE = f'{DNASE_BAM_FILE}.idxstats.txt'
+
+DNASE_GENOMECOUNTS_DIR = f'{OUT_DIR}/dnase_genome_counts/{VER_GENOME}'
+DNASE_GENOMECOUNTS_FWD_FILE = f'{DNASE_GENOMECOUNTS_DIR}/{{dnase_sample}}.fwd.genomecounts.bw'
+DNASE_GENOMECOUNTS_REV_FILE = f'{DNASE_GENOMECOUNTS_DIR}/{{dnase_sample}}.rev.genomecounts.bw'
+
+DNASE_SITES_COUNTS_DIR = F'{OUT_DIR}/dnase_sites_counts/{VER_GENOME}/{MOTIF_SET}'
+DNASE_COUNTMATRIX_FILE = f'{DNASE_SITES_COUNTS_DIR}/{{dnase_sample}}/{{pwm_id}}_{THRESH_PVALUE}.countmatrix.rds'
+DNASE_BINS_FILE = f'{DNASE_SITES_COUNTS_DIR}/{{dnase_sample}}/{{pwm_id}}_{THRESH_PVALUE}.{BIN}_bins.rds'
+
+# File lists ------------------------------------------------------------------
+
+## All sites
+ALL_PWM_FILES = expand(PWM_FILE, pwm_id = PWMID_SET)
+ALL_FIMO_FILES = expand(FIMO_FILE, pwm_id = PWMID_SET)
+ALL_SITES_FILES = expand(SITES_FILE, pwm_id = PWMID_SET)
+
+## All DNASE files
+ALL_DNASE_BAM_FILES = expand(DNASE_BAM_FILE, dnase_sample = DNASE_SET)
+ALL_DNASE_BAI_FILES = expand(DNASE_BAI_FILE, dnase_sample = DNASE_SET)
+ALL_DNASE_IDXSTATS_FILES = expand(DNASE_IDXSTATS_FILE, dnase_sample = DNASE_SET)
+
+ALL_DNASE_GENOMECOUNTS_FWD_FILES = expand(DNASE_GENOMECOUNTS_FWD_FILE, dnase_sample = DNASE_SET)
+ALL_DNASE_GENOMECOUNTS_REV_FILES = expand(DNASE_GENOMECOUNTS_REV_FILE, dnase_sample = DNASE_SET)
+
+ALL_DNASE_COUNTMATRIX_FILES = expand(DNASE_COUNTMATRIX_FILE,
+                                    dnase_sample = DNASE_SET, pwm_id = PWMID_SET)
+ALL_DNASE_BINS_FILES = expand(DNASE_BINS_FILE,
+                             dnase_sample = DNASE_SET, pwm_id = PWMID_SET)
+
+# Rules -----------------------------------------------------------------------
+
+include: 'rules/reads.smk'
+include: 'rules/sites.smk'
+include: 'rules/dnase.smk'
+
+rule all:
+    input:
+        ALL_DNASE_BINS_FILES
+
+
+rule list_data:
+    shell:
+        '''
+        echo 'TFs: {TF_SET}'
+        echo 'Cell types: {CELLTYPE_SET}'
+        echo 'DNASE samples: {DNASE_SET}'
+        '''
+
+rule list_env:
+    conda:
+        'envs/top.yaml'
+    shell:
+        '''
+        samtools --version
+        bedtools --version
+        python --version
+        python -c 'import pandas as pd; print('pandas version: ' + pd.__version__)'
+        R --version
+        '''

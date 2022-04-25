@@ -1,0 +1,9 @@
+# cluster_config.yaml - cluster configuration
+__default__:
+    time: 10:00:00 # time limit for each job
+    nodes: 1
+    ntasks-per-node: 4 #Request n cores (CPUs) be allocated per node.
+    chdir: ~/work/log/top_data_preparation/
+    output: snake-top-%j.out
+    error: snake-top-%j.err
+    mem: 10G

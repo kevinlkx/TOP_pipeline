@@ -1,0 +1,18 @@
+
+# Directories -----------------------------------------------------------------
+motif_dir: '/datacommons/harteminklab/kl124/TOP/data/motifs/JASPAR2022_CORE_vertebrates_non-redundant_pfms_meme'
+dnase_data_dir: '/hpc/home/kl124/work/data/GGR/DNase-seq'
+ref_genome_dir: '/datacommons/harteminklab/kl124/TOP/data/ref_genome/ENCODE'
+blacklist_dir: '/datacommons/harteminklab/kl124/TOP/data/blacklist'
+out_dir: '/hpc/home/kl124/work/TOP/processed_GGR_data'
+log_dir: '/hpc/home/kl124/work/TOP/log/JASPAR2022_GGR'
+
+# Global settings -------------------------------------------------------------
+data_type: 'Duke'
+thresh_pvalue: '1e-5'
+thresh_pwmscore: '0'
+ver_genome: 'hg38'
+bin: 'M5'
+motif_set: 'JASPAR2022'
+dnase_ref_size: '1e8'
+predict_metadata_file: '/datacommons/harteminklab/kl124/TOP/data/GGR/metadata/predictions/GGR_DNase_JASPAR2022NR_all_motifs_predict_data_table.tsv'
