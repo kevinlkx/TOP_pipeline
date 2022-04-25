@@ -47,18 +47,6 @@ thresh_pValue          <- opt$thresh_pValue
 bin_method             <- opt$bin
 outdir                 <- opt$outdir
 
-# # settings example
-# metadata_file          <- '/datacommons/harteminklab/kl124/TOP/data/GGR/metadata/predictions/GGR_DNase_JASPAR2022NR_all_motifs_predict_data_table.tsv'
-# model_coef_file        <- '/datacommons/harteminklab/kl124/TOP/output/TOP_postfit/hg19/OpenChromDnase/JASPARver1/priorVar1/logit_M5_10000iters/TOP_posterior_mean_coef.rds'
-# data_dir               <- '/hpc/home/kl124/work/TOP/processed_GGR_data/dnase_sites_counts/hg38/JASPAR2022'
-# thresh_pValue          <- '1e-5'
-# bin_method             <- 'M5'
-# sites_dir              <- '/hpc/home/kl124/work/TOP/processed_GGR_data/candidate_sites/hg38/JASPAR2022'
-# genomecount_dir        <- '/hpc/home/kl124/work/TOP/processed_GGR_data/dnase_genome_counts/hg38'
-# ref_size               <- '1e8'
-# idxstats_dir           <- '/hpc/home/kl124/work/data/GGR/DNase-seq/hg38'
-# outdir                 <- '/hpc/home/kl124/work/TOP/TOP_predictions_202112/hg38/GGR/JASPAR2022/predicted_binding_probability'
-
 # ================ Load data ================
 
 metadata <- read.table(metadata_file, header = T, sep = "\t", stringsAsFactors = FALSE)
@@ -103,7 +91,7 @@ for(pwm_id in unique(metadata$pwm_id)){
     if(!file.exists(data_file)){
       cat('Generate input data for', pwm_id, 'in', sample_id, '... \n')
       cmd <- paste("Rscript get_acc_counts_bins.R",
-                   "--sites", paste0(sites_dir, "/",pwm_id, "_", thresh_pValue, ".candidate_sites.txt"),
+                   "--sites", paste0(sites_dir, "/",pwm_id, "_", thresh_pValue, ".candidate_sites.txt.gz"),
                    "--genomecount_dir", genomecount_dir,
                    "--genomecount_name", sample_id,
                    "--idxstats", paste0(idxstats_dir, "/",sample_id, ".bam.idxstats.txt"),
@@ -134,7 +122,7 @@ for( i in 1:nrow(metadata)) {
   condition <- metadata[i,'condition']
   sample_ids <- unique(unlist(strsplit(metadata[i,acc_file_col], split = ';')))
 
-  sites_file <- paste0(sites_dir, "/",pwm_id, "_", thresh_pValue, ".candidate_sites.txt")
+  sites_file <- paste0(sites_dir, "/",pwm_id, "_", thresh_pValue, ".candidate_sites.txt.gz")
   if( !file.exists(sites_file) || file.size(sites_file)==0){
     cat('No sites. \n')
     next;

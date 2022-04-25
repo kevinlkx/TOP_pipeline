@@ -3,7 +3,6 @@
 # Sort, index and idxstats BAM files
 library(optparse)
 library(TOP)
-# library(Rsamtools)
 
 # ================ Process the command-line arguments ================
 

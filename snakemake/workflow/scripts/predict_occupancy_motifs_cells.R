@@ -47,15 +47,6 @@ thresh_pValue          <- opt$thresh_pValue
 bin_method             <- opt$bin
 outdir                 <- opt$outdir
 
-# # settings example
-# metadata_file          <- '/datacommons/harteminklab/kl124/TOP/data/ENCODE/metadata/predictions/hg38/ATAC_JASPAR2022NR_all_motifs_predict_data_table.tsv'
-# use_model              <- 'ATAC'
-# data_dir               <- '/hpc/home/kl124/work/TOP/predict_JASPAR2022_202204/atac_sites_counts/hg38/JASPAR2022'
-# sites_dir              <- '/hpc/home/kl124/work/TOP/predict_JASPAR2022_202204/candidate_sites/hg38/JASPAR2022'
-# genomecount_dir        <- '/hpc/home/kl124/work/TOP/predict_JASPAR2022_202204/atac_genome_counts/hg38'
-# idxstats_dir           <- '/hpc/home/kl124/work/data/ENCODE/ATAC-seq/hg38'
-# outdir                 <- '/hpc/home/kl124/datacommons/TOP/predict_JASPAR2022_202204/hg38/ATAC/JASPAR2022/predicted_occupancy'
-
 # ================ Load data ================
 
 metadata <- read.table(metadata_file, header = T, sep = "\t", stringsAsFactors = FALSE)
